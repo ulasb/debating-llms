@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debating LLMs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Debating LLMs</h1>
+        </header>
+
+        <section class="controls" id="controls">
+            <div class="topic-row">
+                <div class="input-group full-width">
+                    <label for="topic">Topic</label>
+                    <input type="text" id="topic" placeholder="e.g., Will AI replace human jobs?"
+                        value="Is the penetration of technology into daily life affecting human relationships negatively?">
+                </div>
+            </div>
+
+            <div class="settings-row">
+                <div class="input-group">
+                    <label for="rounds">Rounds</label>
+                    <input type="number" id="rounds" value="3" min="1" max="10">
+                </div>
+
+                <div class="input-group">
+                    <label for="model-mod">Moderator</label>
+                    <select id="model-mod" class="model-select">
+                        <option value="gemma3:1b" selected>Loading...</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="model-prop">Prepos.</label>
+                    <select id="model-prop" class="model-select">
+                        <option value="gemma3:1b" selected>Loading...</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="model-opp">Oppos.</label>
+                    <select id="model-opp" class="model-select">
+                        <option value="gemma3:1b" selected>Loading...</option>
+                    </select>
+                </div>
+
+                <div class="actions">
+                    <button id="startBtn" onclick="startDebate()">Start</button>
+                    <button id="stopBtn" onclick="stopDebate()" class="secondary" disabled>Stop</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="debate-arena" id="arena">
+            <div class="status-bar">
+                <span id="status-text">Idle</span>
+                <span id="round-indicator"></span>
+            </div>
+            <div id="messages" class="messages-container">
+                <!-- Messages go here -->
+            </div>
+            <div id="typing-indicator" class="typing-indicator hidden">
+                <span id="typer-name"></span> is thinking<span class="dots">...</span>
+            </div>
+        </section>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+
+</html>
