@@ -31,6 +31,15 @@ async function populateModels() {
     }
 }
 
+function showError(msg) {
+    const el = document.getElementById('error-banner');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    setTimeout(() => {
+        el.classList.add('hidden');
+    }, 5000);
+}
+
 async function startDebate() {
     const topic = document.getElementById('topic').value;
     const rounds = parseInt(document.getElementById('rounds').value);
@@ -62,11 +71,12 @@ async function startDebate() {
             document.getElementById('startBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
         } else {
-            alert('Failed to start: ' + result.message);
+            showError('Failed to start: ' + result.message);
             btn.disabled = false;
         }
     } catch (e) {
         console.error(e);
+        showError('Network error or server unavailable');
         btn.disabled = false;
     }
 }
@@ -84,11 +94,17 @@ function connectStream() {
         const data = JSON.parse(event.data);
         render(data);
 
+
         if (data.status === 'completed' || data.status === 'error') {
             eventSource.close();
             document.getElementById('startBtn').disabled = false;
             document.getElementById('stopBtn').disabled = true;
             document.getElementById('status-text').textContent = data.status === 'completed' ? 'Finished' : 'Error';
+
+            if (data.status === 'error' && data.error) {
+                showError(data.error);
+            }
+
             document.getElementById('typing-indicator').classList.add('hidden');
         }
     };
@@ -170,7 +186,12 @@ function createMessageDiv(speaker, content, isStreaming = false) {
 
     const text = document.createElement('div');
     text.className = 'content';
-    text.innerText = content;
+    // Use marked and DOMPurify for safe markdown rendering
+    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+        text.innerHTML = DOMPurify.sanitize(marked.parse(content));
+    } else {
+        text.innerText = content;
+    }
 
     div.appendChild(label);
     div.appendChild(text);

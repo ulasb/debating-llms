@@ -1,10 +1,15 @@
 import json
 import os
 from datetime import datetime
+from slugify import slugify
 
 def save_debate(topic: str, transcript: list):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    safe_topic = "".join([c if c.isalnum() else "_" for c in topic])[:30]
+    # Use robust slugify
+    safe_topic = slugify(topic, max_length=50, word_boundary=True, separator="_")
+    if not safe_topic:
+        safe_topic = "debate"
+        
     filename = f"debate_{timestamp}_{safe_topic}.json"
     
     # Ensure logs directory exists

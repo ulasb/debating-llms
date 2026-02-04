@@ -292,6 +292,12 @@ button:disabled {
     border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: #555;
+
+.error-banner {
+    background-color: #d63031;
+    color: white;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
 }

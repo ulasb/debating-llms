@@ -3,7 +3,12 @@ import time
 import os
 from datetime import datetime
 from .agent import Agent
+import logging
 from .logger import save_debate
+
+# Configure logger
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 class DebateManager:
     def __init__(self):
@@ -17,7 +22,9 @@ class DebateManager:
         self.topic = ""
         self.rounds_total = 0
         self.rounds_current = 0
-        self.model_name = "gemma3:1b"
+
+        self.error_message = None
+        self.on_update = None # Callback for event-driven updates
 
     def start_debate(self, topic, rounds, model_mod, model_prop, model_opp, prompt_dir):
         with self.lock:
@@ -25,6 +32,7 @@ class DebateManager:
                 return False, "Debate already running"
             
             self.status = "running"
+            self.error_message = None
             self.stop_event.clear()
             self.transcript = []
             self.current_stream = ""
@@ -47,10 +55,24 @@ class DebateManager:
             return True, "Debate started"
 
     def stop_debate(self):
+        # Non-blocking stop. 
+        # The thread will check stop_event and exit gracefully.
         self.stop_event.set()
-        if self.thread:
-            self.thread.join()
-        self.status = "idle"
+        
+    def _emit_update(self):
+        if self.on_update:
+            with self.lock:
+                 data = {
+                    "status": self.status,
+                    "transcript": self.transcript,
+                    "current_speaker": self.current_speaker,
+                    "current_stream": self.current_stream,
+                    "rounds_current": self.rounds_current,
+                    "rounds_total": self.rounds_total,
+                    "topic": self.topic,
+                    "error": self.error_message
+                }
+            self.on_update(data)
 
     def _run_debate(self):
         try:
@@ -82,13 +104,20 @@ class DebateManager:
             save_debate(self.topic, self.transcript)
             
         except Exception as e:
-            print(f"Error in debate thread: {e}")
+            logger.error(f"Error in debate thread: {e}", exc_info=True)
+            self.error_message = str(e)
             self.status = "error"
+        finally:
+             if self.stop_event.is_set():
+                  self.status = "idle" 
+             
+             self._emit_update()
 
     def _turn(self, agent, instruction_context):
         with self.lock:
             self.current_speaker = agent.role_name
             self.current_stream = ""
+        self._emit_update()
         
         # Add a temporary system instruction or just rely on conversation history?
         # We pass the history.
@@ -107,6 +136,7 @@ class DebateManager:
             
             with self.lock:
                 self.current_stream += chunk
+            self._emit_update()
             full_response += chunk
 
         # Cleanup prefixes from final response
@@ -127,3 +157,4 @@ class DebateManager:
                 self.transcript.append({'speaker': agent.role_name, 'content': clean_response})
                 self.current_stream = ""
                 self.current_speaker = ""
+            self._emit_update()
