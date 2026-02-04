@@ -1,3 +1,5 @@
+![Screenshot](https://github.com/ulasb/debating-llms/blob/main/debating-llms-screenshot.png)
+
 # Debating LLMs
 
 A Python-based web application where AI models debate topics in real-time.
