@@ -24,7 +24,7 @@ A Python-based web application where AI models debate topics in real-time.
    ```bash
    python3 -m venv .venv
    source .venv/bin/activate
-   pip install fastapi uvicorn ollama
+   pip install -r requirements.txt
    ```
 
 2. **Run the App**:
