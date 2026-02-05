@@ -67,6 +67,10 @@ async function startDebate() {
         const result = await response.json();
 
         if (result.success) {
+            // Clear previous debate history
+            document.getElementById('messages').innerHTML = '';
+            currentTranscriptLength = 0;
+
             connectStream();
             document.getElementById('startBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
