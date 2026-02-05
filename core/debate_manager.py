@@ -144,13 +144,32 @@ class DebateManager:
         # Check for various prefix formats case-insensitively
         p_len = len(agent.role_name)
         # We start checking if the response starts with the role name
-        if clean_response.lower().startswith(agent.role_name.lower()):
-             # potential prefix. Check for : or ] or similar
-             remainder = clean_response[p_len:]
-             if remainder.startswith(":") or remainder.startswith("]:"):
-                 clean_response = remainder.lstrip(": ]")
-        elif clean_response.startswith("[") and clean_response.lower().startswith(f"[{agent.role_name.lower()}]"):
-             clean_response = clean_response.split("]", 1)[1].lstrip(" :")
+        # Helper to strip one instance
+        def strip_prefix(text, role):
+             p_len = len(role)
+             if text.lower().startswith(role.lower()):
+                 remainder = text[p_len:]
+                 if remainder.startswith(":") or remainder.startswith("]:"):
+                     return remainder.lstrip(": ]")
+             elif text.startswith("[") and text.lower().startswith(f"[{role.lower()}]"):
+                 if "]" in text:
+                     return text.split("]", 1)[1].lstrip(" :")
+             elif text.startswith("**") and text.lower().startswith(f"**{role.lower()}"):
+                 # Bold markdown case: **Role**: ...
+                 if "**:" in text:
+                     return text.split("**:", 1)[1].strip()
+                 if "**" in text[2:]:
+                      # e.g **Role** ...
+                      return text.split("**", 2)[2].strip(" :")
+             return text
+
+        # Repeatedly strip prefixes
+        clean_response = full_response.strip()
+        for _ in range(3):
+            new_response = strip_prefix(clean_response, agent.role_name)
+            if new_response == clean_response:
+                break
+            clean_response = new_response
 
         if not self.stop_event.is_set():
             with self.lock:
