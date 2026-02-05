@@ -164,7 +164,7 @@ class DebateManager:
 
         # Repeatedly strip prefixes
         clean_response = full_response.strip()
-        for _ in range(3):
+        while True:
             new_response = strip_prefix(clean_response, agent.role_name)
             if new_response == clean_response:
                 break
