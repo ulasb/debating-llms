@@ -142,7 +142,6 @@ class DebateManager:
         # Cleanup prefixes from final response
         clean_response = full_response.strip()
         # Check for various prefix formats case-insensitively
-        p_len = len(agent.role_name)
         # We start checking if the response starts with the role name
         # Helper to strip one instance
         def strip_prefix(text, role):
